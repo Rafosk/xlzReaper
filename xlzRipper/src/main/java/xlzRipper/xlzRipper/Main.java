@@ -10,55 +10,73 @@ public class Main {
 
 	public static void main(String[] args) throws IOException {
 
-		
-		File source = new File("C://workspace_eclipse");
-		File destDir = new File("C://workspace_eclipse");
-			//File destDir = new File(System.getProperty("user.dir"));
+		File source = new File("C://xmlReaper");
 
+		//xlzPacker(source);
+		//xlzReaper(source);
+	}
+
+	private static void xlzPacker(File source) throws IOException, FileNotFoundException {
 		String[] sourceFiles = source.list();
 
 		for (String sourceFileName : sourceFiles) {
 
-			if (sourceFileName.endsWith(".xlf")) {
+			if (sourceFileName.endsWith(".xlz")) {
 
-				// System.out.println(sourceFileName);
+				ZipFile war = new ZipFile(source + "//" + sourceFileName);
+				ZipOutputStream xlzTargetFile = new ZipOutputStream(new FileOutputStream(source + "//" + "tmp.tmp"));
 
+				addSkeleton(war, xlzTargetFile);
+
+				// now append some extra content
+
+				addTranslatedContent(source, sourceFileName, xlzTargetFile);
+
+				war.close();
+				xlzTargetFile.close();
 			}
+
+			fileReplace(source, sourceFileName);
 		}
+	}
 
-		// read war.zip and write to append.zip
-		ZipFile war = new ZipFile("la.xlz");
-		ZipOutputStream append = new ZipOutputStream(new FileOutputStream("append.zip"));
-
-		// first, copy contents from existing war
+	private static void addSkeleton(ZipFile war, ZipOutputStream xlzTargetFile) throws IOException {
 		Enumeration<? extends ZipEntry> entries = war.entries();
 		while (entries.hasMoreElements()) {
-			
-			//ZipEntry e = entries.nextElement(); chuj wi czemu tak nie dziala
-			ZipEntry e = new ZipEntry (entries.nextElement().getName());
 
-			System.out.println("copy: " + e.getName());
-			
-			append.putNextEntry(e);
-			
-			if (!e.isDirectory()) {
-				copy(war.getInputStream(e), append);
+			// ZipEntry e = entries.nextElement(); chuj wi czemu tak nie dziala
+			ZipEntry e = new ZipEntry(entries.nextElement().getName());
+
+			if (!e.getName().equals("content.xlf")) {
+
+				System.out.println("copy: " + e.getName());
+				xlzTargetFile.putNextEntry(e);
+
+				if (!e.isDirectory()) {
+					copy(war.getInputStream(e), xlzTargetFile);
+				}
+
+				xlzTargetFile.closeEntry();
 			}
-			append.closeEntry();
+
 		}
+	}
 
-		// now append some extra content
-		ZipEntry e = new ZipEntry("answer.txt");
-		System.out.println("append: " + e.getName());
-		append.putNextEntry(e);
-		append.write("42\n".getBytes());
-		append.closeEntry();
+	private static void addTranslatedContent(File source, String sourceFileName, ZipOutputStream xlzTargetFile)
+			throws FileNotFoundException, IOException {
+		FileInputStream fin = new FileInputStream(source + "//" + sourceFileName + ".xlf");
 
-		// close
-		war.close();
-		append.close();
+		ZipEntry e = new ZipEntry("content.xlf");
+		xlzTargetFile.putNextEntry(e);
+		copy(fin, xlzTargetFile);
+		xlzTargetFile.closeEntry();
+	}
 
-	//	 xlzReaper(source, destDir);
+	private static void fileReplace(File source, String sourceFileName) {
+		File xlzOryginalFile = new File(source + "//" + sourceFileName);
+		xlzOryginalFile.renameTo(new File(source + "//" + sourceFileName + ".old"));
+		File tmp = new File(source + "//" + "tmp.tmp");
+		tmp.renameTo(new File(source + "//" + sourceFileName));
 	}
 
 	public static void copy(InputStream input, OutputStream output) throws IOException {
@@ -68,7 +86,7 @@ public class Main {
 		}
 	}
 
-	private static void xlzReaper(File source, File destDir) throws FileNotFoundException, IOException {
+	private static void xlzReaper(File source) throws FileNotFoundException, IOException {
 		String[] sourceFiles = source.list();
 
 		for (String sourceFileName : sourceFiles) {
@@ -81,7 +99,7 @@ public class Main {
 
 				while (zipEntry != null) {
 					System.out.println(zipEntry.getName());
-					saveXlz(destDir, sourceFileName, buffer, zis, zipEntry);
+					saveXlz(source, sourceFileName, buffer, zis, zipEntry);
 					zipEntry = zis.getNextEntry();
 				}
 
@@ -100,11 +118,8 @@ public class Main {
 			System.out.println(targetFileName);
 			File newFile = newFile(destDir, targetFileName);
 			FileOutputStream fos = new FileOutputStream(newFile);
-			int len;
 
-			while ((len = zis.read(buffer)) > 0) {
-				fos.write(buffer, 0, len);
-			}
+			copy(zis, fos);
 
 			fos.close();
 		}
