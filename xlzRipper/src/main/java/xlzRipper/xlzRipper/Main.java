@@ -1,17 +1,33 @@
 package xlzRipper.xlzRipper;
 
+import java.awt.Dimension;
+import java.awt.Toolkit;
 import java.io.*;
 import java.util.Enumeration;
 import java.util.zip.*;
-
+import javax.swing.*;
 public class Main {
 
 	private static final byte[] BUFFER = new byte[1024];
 
 	public static void main(String[] args) throws IOException {
 
-		File source = new File("C://xmlReaper");
-
+		File source = new File("C://xmlReaper");		
+		
+		Integer x = Toolkit.getDefaultToolkit().getScreenSize().width;
+		Integer y = Toolkit.getDefaultToolkit().getScreenSize().height;
+		
+		
+		JFrame frame = new JFrame();
+		frame.setTitle("XLZ Reaper");
+		
+		frame.setVisible(true);
+		frame.setSize(600,400);
+		frame.setLocation(x/3, y/3);
+		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+		frame.setResizable(false);
+		
+		
 		//xlzPacker(source);
 		//xlzReaper(source);
 	}
