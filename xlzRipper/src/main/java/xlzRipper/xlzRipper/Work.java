@@ -1,12 +1,20 @@
 package xlzRipper.xlzRipper;
 
 import java.awt.Dimension;
+
+import java.awt.BorderLayout;
+import java.awt.EventQueue;
+
+import javax.swing.JFrame;
+import javax.swing.JPanel;
+import javax.swing.border.EmptyBorder;
+
 import java.awt.Toolkit;
 import java.io.*;
 import java.util.Enumeration;
 import java.util.zip.*;
 import javax.swing.*;
-public class Main {
+public class Work extends JFrame {
 
 	private static final byte[] BUFFER = new byte[1024];
 
@@ -32,7 +40,7 @@ public class Main {
 		//xlzReaper(source);
 	}
 
-	private static void xlzPacker(File source) throws IOException, FileNotFoundException {
+	public static void xlzPacker(File source) throws IOException, FileNotFoundException {
 		String[] sourceFiles = source.list();
 
 		for (String sourceFileName : sourceFiles) {
@@ -102,7 +110,7 @@ public class Main {
 		}
 	}
 
-	private static void xlzReaper(File source) throws FileNotFoundException, IOException {
+	public static void xlzReaper(File source) throws FileNotFoundException, IOException {
 		String[] sourceFiles = source.list();
 
 		for (String sourceFileName : sourceFiles) {
