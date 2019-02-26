@@ -1,7 +1,5 @@
 package xlzRipper.xlzRipper;
 
-import java.awt.Dimension;
-
 import java.awt.BorderLayout;
 import java.awt.EventQueue;
 
@@ -9,37 +7,22 @@ import javax.swing.JFrame;
 import javax.swing.JPanel;
 import javax.swing.border.EmptyBorder;
 
+import org.apache.commons.io.FileUtils;
+
 import java.awt.Toolkit;
 import java.io.*;
+import java.nio.charset.StandardCharsets;
 import java.util.Enumeration;
 import java.util.zip.*;
 import javax.swing.*;
 public class Work extends JFrame {
 
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
 	private static final byte[] BUFFER = new byte[1024];
-
-	public static void main(String[] args) throws IOException {
-
-		File source = new File("C://xmlReaper");		
-		
-		Integer x = Toolkit.getDefaultToolkit().getScreenSize().width;
-		Integer y = Toolkit.getDefaultToolkit().getScreenSize().height;
-		
-		
-		JFrame frame = new JFrame();
-		frame.setTitle("XLZ Reaper");
-		
-		frame.setVisible(true);
-		frame.setSize(600,400);
-		frame.setLocation(x/3, y/3);
-		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-		frame.setResizable(false);
-		
-		
-		//xlzPacker(source);
-		//xlzReaper(source);
-	}
-
+	
 	public static void xlzPacker(File source) throws IOException, FileNotFoundException {
 		String[] sourceFiles = source.list();
 
@@ -129,8 +112,17 @@ public class Work extends JFrame {
 
 				zis.closeEntry();
 				zis.close();
+				
+				addTarget(source, sourceFileName);
 			}
+		
 		}
+	}
+
+	private static void addTarget(File source, String sourceFileName) throws IOException {
+		String tmpFile = FileUtils.readFileToString(new File(source + "//" + sourceFileName + ".xlf"), StandardCharsets.UTF_8);
+		tmpFile = tmpFile.replaceAll("<source>(.*?)</source>","<source>$1</source><target>$1</target>");
+		FileUtils.writeStringToFile(new File(source + "//" + sourceFileName + ".xlf"), tmpFile, StandardCharsets.UTF_8);
 	}
 
 	private static void saveXlz(File destDir, String sourceFileName, byte[] buffer, ZipInputStream zis,
@@ -141,6 +133,7 @@ public class Work extends JFrame {
 			String targetFileName = sourceFileName + ".xlf";
 			System.out.println(targetFileName);
 			File newFile = newFile(destDir, targetFileName);
+			
 			FileOutputStream fos = new FileOutputStream(newFile);
 
 			copy(zis, fos);
